@@ -1,71 +1,53 @@
-# codingstatistics README
+# Coding Statistics
 
-This is the README for your extension "codingstatistics". After writing up a brief description, we recommend including the following sections.
+**Coding Statistics** é uma extensão para o Visual Studio Code que coleta estatísticas da sua atividade de codificação e as envia para uma API personalizada. Ideal para desenvolvedores que desejam acompanhar métricas como produtividade, tempo de uso e criação de arquivos.
 
-## Features
+## 📊 Funcionalidades
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- Contagem de **linhas escritas**.
+- Contagem de **letras digitadas**.
+- Contador de **arquivos criados**.
+- Registro do **tempo total de uso** do editor.
+- Envio automático das estatísticas ao fechar o VS Code.
+- Armazena o **e-mail do usuário** para vincular as estatísticas.
 
-For example if there is an image subfolder under your extension project workspace:
+## ⚙️ Requisitos
 
-\!\[feature X\]\(images/feature-x.png\)
+Antes de usar a extensão, é necessário configurar a URL da API nas configurações do VS Code:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Acesse as configurações (`Ctrl+,` ou `Cmd+,`).
+2. Busque por `codingstatistics.apiUrl`.
+3. Insira a URL da sua API de estatísticas.
 
-## Requirements
+Caso a URL não esteja configurada corretamente, a extensão exibirá uma mensagem de erro e não será ativada.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## 🔧 Configurações da Extensão
 
-## Extension Settings
+Esta extensão contribui com as seguintes configurações:
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+- `codingstatistics.apiUrl`: Define a URL da API que receberá os dados de estatísticas.
 
-For example:
+## 🐞 Problemas Conhecidos
 
-This extension contributes the following settings:
+- A extensão não funcionará sem uma URL válida configurada para a API.
+- Em alguns casos, a captura do e-mail do usuário pode falhar se não estiver configurado no Git.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
+## 📦 Notas de Versão
 
 ### 1.0.0
 
-Initial release of ...
+- Lançamento inicial com suporte a:
+  - Registro de linhas e letras escritas
+  - Arquivos criados
+  - Tempo total de codificação
+  - Envio das estatísticas para uma API configurada
 
-### 1.0.1
+## 📚 Recursos Úteis
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- [Guia de Extensões do VS Code](https://code.visualstudio.com/api/references/extension-guidelines)
+- [Suporte a Markdown no VS Code](https://code.visualstudio.com/docs/languages/markdown)
+- [Referência de Sintaxe Markdown](https://help.github.com/articles/markdown-basics/)
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Divirta-se rastreando suas estatísticas com Coding Statistics!**
