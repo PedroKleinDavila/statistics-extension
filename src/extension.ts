@@ -1,11 +1,18 @@
 import * as vscode from 'vscode';
-import { registerHelloWorldCommand } from './commands/helloWorld';
 import { handleFileCreation } from './events/onFileCreation';
 import { handleTextDocumentChange } from './events/onTextChange';
 import { handleWindowStateChange } from './events/onWindowChange';
 import { getUserEmail } from './utils/getUserEmail';
+import { putStats } from './service/putStats';
 let extensionContext: vscode.ExtensionContext;
 export async function activate(context: vscode.ExtensionContext) {
+	const config = vscode.workspace.getConfiguration('codingstatistics');
+	if (config.get('apiUrl') === "asd") {
+		await vscode.window.showErrorMessage(
+			'URL da API não configurada. Por favor, configure a URL da API nas configurações da extensão.'
+		);
+		return;
+	}
 	extensionContext = context;
 	const email = await getUserEmail();
 	if (email) {
@@ -19,16 +26,13 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.workspaceState.update('filesCreated', 0);
 	context.workspaceState.update('windowState', 'active');
 	context.workspaceState.update('startTime', Date.now());
-	console.log('Congratulations, your extension "codingstatistics" is now active!');
-
-	registerHelloWorldCommand();
 
 	handleTextDocumentChange(context);
 	handleFileCreation(context);
 	handleWindowStateChange(context);
 }
 
-export function deactivate() {
+export async function deactivate() {
 	const email = extensionContext.workspaceState.get('userEmail', null);
 	if (email) {
 		console.log(`Usuário logado: ${email}`);
@@ -55,6 +59,13 @@ export function deactivate() {
 	console.log(`Estatísticas ao fechar o VSCode:
     Linhas escritas: ${linesWritten}
     Letras escritas: ${lettersWritten}
-    Tempo total: ${(totalTime / 1000).toFixed(2)} segundos
+    Tempo total: ${Math.floor(totalTime / 1000)} segundos
     Arquivos criados: ${filesCreated}`);
+	await putStats(
+		email,
+		linesWritten,
+		lettersWritten,
+		Math.floor(totalTime / 1000),
+		filesCreated
+	);
 }

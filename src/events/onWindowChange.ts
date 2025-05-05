@@ -14,8 +14,6 @@ export function handleWindowStateChange(context: vscode.ExtensionContext) {
 
 				context.workspaceState.update('totalTime', totalTime);
 				context.workspaceState.update('startTime', null);
-
-				console.log(`Tempo total: ${totalTime / 1000} segundos`);
 			}
 		}
 	});

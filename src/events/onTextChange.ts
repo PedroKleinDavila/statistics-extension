@@ -16,8 +16,6 @@ export function handleTextDocumentChange(context: vscode.ExtensionContext) {
 
             context.workspaceState.update('linesWritten', totalLinesWritten);
             context.workspaceState.update('lettersWritten', totalLettersWritten);
-
-            console.log(`Linhas alteradas: +${linesAdded}, Letras alteradas: +${lettersAdded}`);
         }
     });
 }
