@@ -2,24 +2,30 @@ import * as vscode from 'vscode';
 
 export function handleTextDocumentChange(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeTextDocument((event) => {
+        let totalLinesWritten = context.workspaceState.get('linesWritten', 0);
+        let totalLettersWritten = context.workspaceState.get('lettersWritten', 0);
+
         for (const change of event.contentChanges) {
-            const textAdded = change.text;
+            const addedText = change.text;
+            const removedRange = change.range;
+            const removedLength = change.rangeLength;
+            if (addedText.length > 0) {
+                const addedLines = addedText.split('\n').length - 1;
+                const addedLetters = addedText.length;
 
-            const linesAdded = textAdded.split('\n').length - 1;
-            const lettersAdded = textAdded.length;
+                totalLinesWritten += addedLines;
+                totalLettersWritten += addedLetters;
+            }
+            if (removedLength > 0) {
+                const removedLines = removedRange.end.line - removedRange.start.line;
+                const removedLetters = removedLength;
 
-            let totalLinesWritten = context.workspaceState.get('linesWritten', 0);
-            let totalLettersWritten = context.workspaceState.get('lettersWritten', 0);
-
-            totalLinesWritten += linesAdded;
-            totalLettersWritten += lettersAdded;
-
-            context.workspaceState.update('linesWritten', totalLinesWritten);
-            context.workspaceState.update('lettersWritten', totalLettersWritten);
+                totalLinesWritten -= removedLines;
+                totalLettersWritten -= removedLetters;
+            }
         }
-    });
-}
 
-function countLinesInRange(range: vscode.Range): number {
-    return range.end.line - range.start.line;
+        context.workspaceState.update('linesWritten', totalLinesWritten);
+        context.workspaceState.update('lettersWritten', totalLettersWritten);
+    });
 }
