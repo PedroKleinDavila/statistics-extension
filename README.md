@@ -46,8 +46,7 @@ Esta extensão oferece a seguinte opção:
 
 - Ajustes na forma como **letras e linhas** são contabilizadas
 
-### 1.0.0 e 1.0.1
+### 1.0.0 -> 1.0.2
 
 - Exibição das estatísticas na **barra de status** do VS Code
-- Alterações no comportamento do contador de **arquivos criados**
 

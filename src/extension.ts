@@ -4,7 +4,6 @@ import { handleTextDocumentChange } from './events/onTextChange';
 import { handleWindowStateChange } from './events/onWindowChange';
 import { getUserEmail } from './utils/getUserEmail';
 import { putStats } from './service/putStats';
-import { handleFileDeletion } from './events/onFileDeletion';
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
 export async function activate(context: vscode.ExtensionContext) {
@@ -37,7 +36,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	handleTextDocumentChange(context, updateStatsBar);
 	handleFileCreation(context, updateStatsBar);
-	handleFileDeletion(context, updateStatsBar);
 	handleWindowStateChange(context);
 }
 
