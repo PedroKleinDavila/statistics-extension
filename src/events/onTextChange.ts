@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export function handleTextDocumentChange(context: vscode.ExtensionContext) {
+export function handleTextDocumentChange(context: vscode.ExtensionContext, onChange?: () => void) {
     vscode.workspace.onDidChangeTextDocument((event) => {
         let totalLinesWritten = context.workspaceState.get('linesWritten', 0);
         let totalLettersWritten = context.workspaceState.get('lettersWritten', 0);
@@ -27,5 +27,8 @@ export function handleTextDocumentChange(context: vscode.ExtensionContext) {
 
         context.workspaceState.update('linesWritten', totalLinesWritten);
         context.workspaceState.update('lettersWritten', totalLettersWritten);
+        if (onChange) {
+            onChange();
+        }
     });
 }

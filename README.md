@@ -1,53 +1,53 @@
-# Coding Statistics
+# 📈 Coding Statistics
 
-**Coding Statistics** é uma extensão para o Visual Studio Code que coleta estatísticas da sua atividade de codificação e as envia para uma API personalizada. Ideal para desenvolvedores que desejam acompanhar métricas como produtividade, tempo de uso e criação de arquivos.
+**Coding Statistics** é uma extensão para o Visual Studio Code que coleta e envia estatísticas da sua atividade de codificação para uma API personalizada. Ideal para desenvolvedores que desejam monitorar produtividade, tempo de uso do editor, criação de arquivos e mais.
 
-## 📊 Funcionalidades
+## ⚙️ Funcionalidades
 
-- Contagem de **linhas escritas**.
-- Contagem de **letras digitadas**.
-- Contador de **arquivos criados**.
-- Registro do **tempo total de uso** do editor.
-- Envio automático das estatísticas ao fechar o VS Code.
-- Armazena o **e-mail do usuário** para vincular as estatísticas.
+- 📄 Contagem de **linhas escritas**
+- ⌨️ Contagem de **letras digitadas**
+- 🗃️ Contador de **arquivos criados**
+- ⏱️ Registro do **tempo total de uso** do editor
+- ☁️ **Envio automático** das estatísticas ao fechar o VS Code
+- 📧 Armazenamento do **e-mail do usuário** para vincular os dados
 
-## ⚙️ Requisitos
+## 🔧 Configuração
 
-Antes de usar a extensão, é necessário configurar a URL da API nas configurações do VS Code:
+Antes de usar a extensão, é necessário configurar a URL da API:
 
-1. Acesse as configurações (`Ctrl+,` ou `Cmd+,`).
-2. Busque por `codingstatistics.apiUrl`.
+1. Abra as configurações do VS Code (`Ctrl + ,` ou `Cmd + ,`).
+2. Pesquise por `codingstatistics.apiUrl`.
 3. Insira a URL da sua API de estatísticas.
 
-Caso a URL não esteja configurada corretamente, a extensão exibirá uma mensagem de erro e não será ativada.
+> ⚠️ Se a URL não estiver configurada corretamente, a extensão exibirá uma mensagem de erro e não será ativada.
 
-## 🔧 Configurações da Extensão
+## 🛠️ Opções de Configuração
 
-Esta extensão contribui com as seguintes configurações:
+Esta extensão oferece a seguinte opção:
 
-- `codingstatistics.apiUrl`: Define a URL da API que receberá os dados de estatísticas.
+- `codingstatistics.apiUrl`: Define a URL da API que receberá os dados.
 
 ## 🐞 Problemas Conhecidos
 
-- A extensão não funcionará sem uma URL válida configurada para a API.
-- Em alguns casos, a captura do e-mail do usuário pode falhar se não estiver configurado no Git.
+- A extensão **não funcionará sem uma URL válida** configurada.
+- A captura do e-mail pode falhar se não estiver configurado no Git (`user.email`).
 
 ## 📦 Notas de Versão
 
-### 1.0.0
+### 0.0.1
 
 - Lançamento inicial com suporte a:
-  - Registro de linhas e letras escritas
-  - Arquivos criados
+  - Registro de linhas e letras
+  - Contador de arquivos
   - Tempo total de codificação
-  - Envio das estatísticas para uma API configurada
+  - Envio automático para a API
 
-## 📚 Recursos Úteis
+### 0.0.2 e 0.0.3
 
-- [Guia de Extensões do VS Code](https://code.visualstudio.com/api/references/extension-guidelines)
-- [Suporte a Markdown no VS Code](https://code.visualstudio.com/docs/languages/markdown)
-- [Referência de Sintaxe Markdown](https://help.github.com/articles/markdown-basics/)
+- Ajustes na forma como **letras e linhas** são contabilizadas
 
----
+### 1.0.0
 
-**Divirta-se rastreando suas estatísticas com Coding Statistics!**
+- Exibição das estatísticas na **barra de status** do VS Code
+- Alterações no comportamento do contador de **arquivos criados**
+

@@ -5,6 +5,7 @@ import { handleWindowStateChange } from './events/onWindowChange';
 import { getUserEmail } from './utils/getUserEmail';
 import { putStats } from './service/putStats';
 let extensionContext: vscode.ExtensionContext;
+let statsStatusBarItem: vscode.StatusBarItem;
 export async function activate(context: vscode.ExtensionContext) {
 	const config = vscode.workspace.getConfiguration('codingstatistics');
 	if (config.get('apiUrl') === "asd") {
@@ -27,8 +28,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.workspaceState.update('windowState', 'active');
 	context.workspaceState.update('startTime', Date.now());
 
-	handleTextDocumentChange(context);
-	handleFileCreation(context);
+	statsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	statsStatusBarItem.tooltip = 'Estatísticas de Codificação';
+	statsStatusBarItem.show();
+	context.subscriptions.push(statsStatusBarItem);
+	updateStatsBar();
+
+	handleTextDocumentChange(context, updateStatsBar);
+	handleFileCreation(context, updateStatsBar);
 	handleWindowStateChange(context);
 }
 
@@ -68,4 +75,14 @@ export async function deactivate() {
 		Math.floor(totalTime / 1000),
 		filesCreated
 	);
+}
+
+function updateStatsBar() {
+	if (!extensionContext || !statsStatusBarItem) { return; }
+
+	const lines = extensionContext.workspaceState.get('linesWritten', 0);
+	const letters = extensionContext.workspaceState.get('lettersWritten', 0);
+	const files = extensionContext.workspaceState.get('filesCreated', 0);
+
+	statsStatusBarItem.text = `$(pencil) ${lines} linhas • ${letters} letras • ${files} arquivos`;
 }
