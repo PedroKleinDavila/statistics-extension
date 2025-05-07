@@ -4,13 +4,14 @@ import { handleTextDocumentChange } from './events/onTextChange';
 import { handleWindowStateChange } from './events/onWindowChange';
 import { getUserEmail } from './utils/getUserEmail';
 import { putStats } from './service/putStats';
+import { startGitBranchWatcher } from './events/branchWatcher';
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
 export async function activate(context: vscode.ExtensionContext) {
 	const config = vscode.workspace.getConfiguration('codingstatistics');
 	if (config.get('apiUrl') === "asd") {
 		await vscode.window.showErrorMessage(
-			'URL da API não configurada. Por favor, configure a URL da API nas configurações da extensão.'
+			'API URL not configured. Please configure the API URL in the extension settings.'
 		);
 		return;
 	}
@@ -29,11 +30,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.workspaceState.update('startTime', Date.now());
 
 	statsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-	statsStatusBarItem.tooltip = 'Estatísticas de Codificação';
+	statsStatusBarItem.tooltip = 'Coding Statistics';
 	statsStatusBarItem.show();
 	context.subscriptions.push(statsStatusBarItem);
 	updateStatsBar();
 
+	startGitBranchWatcher(context, updateStatsBar);
 	handleTextDocumentChange(context, updateStatsBar);
 	handleFileCreation(context, updateStatsBar);
 	handleWindowStateChange(context);
@@ -42,9 +44,9 @@ export async function activate(context: vscode.ExtensionContext) {
 export async function deactivate() {
 	const email = extensionContext.workspaceState.get('userEmail', null);
 	if (email) {
-		console.log(`Usuário logado: ${email}`);
+		console.log(`Logged in user: ${email}`);
 	} else {
-		console.log('Usuário não autenticado ou e-mail indisponível');
+		console.log('User not authenticated or email unavailable');
 		return;
 	}
 	if (!extensionContext) {
@@ -63,11 +65,11 @@ export async function deactivate() {
 		extensionContext.workspaceState.update('totalTime', totalTime);
 	}
 
-	console.log(`Estatísticas ao fechar o VSCode:
-    Linhas escritas: ${linesWritten}
-    Letras escritas: ${lettersWritten}
-    Tempo total: ${Math.floor(totalTime / 1000)} segundos
-    Arquivos criados: ${filesCreated}`);
+	console.log(`Statistics on VSCode shutdown:
+    Lines written: ${linesWritten}
+    Characters written: ${lettersWritten}
+    Total time: ${Math.floor(totalTime / 1000)} seconds
+    Files created: ${filesCreated}`);
 	await putStats(
 		email,
 		linesWritten,
@@ -84,5 +86,5 @@ function updateStatsBar() {
 	const letters = extensionContext.workspaceState.get('lettersWritten', 0);
 	const files = extensionContext.workspaceState.get('filesCreated', 0);
 
-	statsStatusBarItem.text = `$(pencil) ${lines} linhas • ${letters} letras • ${files} arquivos`;
+	statsStatusBarItem.text = `$(pencil) ${lines} lines • ${letters} chars • ${files} files`;
 }
