@@ -61,6 +61,10 @@ Before using the extension, you must configure the API URL:
 
 - Display of statistics in the **VS Code status bar**
 
+### 1.0.3
+
+- Fixed a bug that caused inaccurate tracking when switching branches.
+
 ---
 
 ## 📬 Feedback
