@@ -7,7 +7,7 @@ export function handleTextDocumentChange(
     vscode.workspace.onDidChangeTextDocument((event) => {
         const activeEditor = vscode.window.activeTextEditor;
 
-        if (!activeEditor || event.document !== activeEditor.document) return;
+        if (!activeEditor || event.document !== activeEditor.document) { return; }
 
         let totalLinesWritten = context.workspaceState.get('linesWritten', 0);
         let totalLettersWritten = context.workspaceState.get('lettersWritten', 0);
