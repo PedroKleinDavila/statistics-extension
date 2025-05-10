@@ -27,6 +27,7 @@ export async function startGitBranchWatcher(context: vscode.ExtensionContext, on
         const files = context.workspaceState.get('filesCreated', 0);
         let totalTime = context.workspaceState.get('totalTime', 0);
         const startTime = context.workspaceState.get('startTime', null);
+        const machineId = context.workspaceState.get('machineId', null) ?? "";
 
         if (startTime !== null) {
             const sessionTime = Date.now() - startTime;
@@ -35,7 +36,7 @@ export async function startGitBranchWatcher(context: vscode.ExtensionContext, on
         }
 
         if (email) {
-            await putStats(email, lines, letters, Math.floor(totalTime / 1000), files);
+            await putStats(email, machineId, lines, letters, Math.floor(totalTime / 1000), files);
             context.workspaceState.update('linesWritten', 0);
             context.workspaceState.update('lettersWritten', 0);
             context.workspaceState.update('filesCreated', 0);

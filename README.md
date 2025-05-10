@@ -18,27 +18,12 @@ Perfect for developers who want to track productivity, editor usage time, file c
 
 ## 🔧 Setup
 
-Before using the extension, you must configure the API URL:
-
-1. Open the VS Code settings (`Ctrl + ,` or `Cmd + ,`)
-2. Search for `codingstatistics.apiUrl`
-3. Enter your custom statistics API URL
-
-> ⚠️ If the URL is not configured correctly, the extension will show an error message and will not be activated.
-
----
-
-## 🛠️ Configuration Options
-
-| Setting                    | Description                                   |
-|---------------------------|-----------------------------------------------|
-| `codingstatistics.apiUrl` | Defines the API URL that will receive the data |
+For the first time using the extension in a new machine, it is necessary to passthrow an email verification.
 
 ---
 
 ## 🐞 Known Issues
 
-- The extension **will not work** without a valid `apiUrl` configured.
 - Email capture may fail if the Git config (`user.email`) is not set.
 
 ---
@@ -64,6 +49,10 @@ Before using the extension, you must configure the API URL:
 ### 1.0.3
 
 - Fixed a bug that caused inaccurate tracking when switching branches.
+
+### 1.1.0
+
+- Including an authentication for security based on an email auth.
 
 ---
 
