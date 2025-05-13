@@ -49,7 +49,7 @@
 
 - Fixed a bug where switching branches caused inaccurate tracking.
 
-### 1.1.1
+### 1.1.2
 
 - Introduced email-based authentication for better security.
 
