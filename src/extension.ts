@@ -6,8 +6,10 @@ import { getUserEmail } from './utils/getUserEmail';
 import { putStats } from './service/putStats';
 import { startGitBranchWatcher } from './events/branchWatcher';
 import { authUser } from './service/authUser';
+import { updateStatsBar } from './statusBar';
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
+let reconnectStatusBarItem: vscode.StatusBarItem;
 export async function activate(context: vscode.ExtensionContext) {
 	extensionContext = context;
 	const email = await getUserEmail();
@@ -23,11 +25,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		return;
 	}
 	const authenticated = await authUser(email, machineId);
-	if (!authenticated) {
-		vscode.window.showErrorMessage('Authentication failed. Please check your credentials.');
+	context.workspaceState.update('needsLogin', false);
+	if (authenticated === "User not found") {
+		vscode.window.showErrorMessage('User not found. Please check your email or register.');
+		context.workspaceState.update('needsLogin', true);
 		context.workspaceState.update('userEmail', null);
 		vscode.env.openExternal(vscode.Uri.parse(`https://coding-statistics-frontend.vercel.app/${email}/${machineId}`));
-		return;
+	}
+	if (!authenticated) {
+		vscode.window.showErrorMessage('Authentication failed. Please check your internet connection.');
+		context.workspaceState.update('needsLogin', true);
+		context.workspaceState.update('userEmail', null);
 	}
 	context.workspaceState.update('userEmail', email);
 	context.workspaceState.update('machineId', machineId);
@@ -41,12 +49,15 @@ export async function activate(context: vscode.ExtensionContext) {
 	statsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
 	statsStatusBarItem.tooltip = 'Coding Statistics';
 	statsStatusBarItem.show();
-	context.subscriptions.push(statsStatusBarItem);
-	updateStatsBar();
 
-	startGitBranchWatcher(context, updateStatsBar);
-	handleTextDocumentChange(context, updateStatsBar);
-	handleFileCreation(context, updateStatsBar);
+	reconnectStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+
+	context.subscriptions.push(statsStatusBarItem, reconnectStatusBarItem);
+	updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem);
+
+	startGitBranchWatcher(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
+	handleTextDocumentChange(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
+	handleFileCreation(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
 	handleWindowStateChange(context);
 }
 
@@ -88,14 +99,4 @@ export async function deactivate() {
 		Math.floor(totalTime / 1000),
 		filesCreated
 	);
-}
-
-function updateStatsBar() {
-	if (!extensionContext || !statsStatusBarItem) { return; }
-
-	const lines = extensionContext.workspaceState.get('linesWritten', 0);
-	const letters = extensionContext.workspaceState.get('lettersWritten', 0);
-	const files = extensionContext.workspaceState.get('filesCreated', 0);
-
-	statsStatusBarItem.text = `$(pencil) ${lines} lines • ${letters} chars • ${files} files`;
 }
