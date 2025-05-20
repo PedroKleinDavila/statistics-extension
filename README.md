@@ -36,7 +36,7 @@
 
 ## 📦 Release Notes
 
-### 1.2.0
+### 1.2.1
 
 - Added reconnection logic to handle temporary API outages more gracefully.
 - Clicking the status bar display now opens the web dashboard with your personal statistics.
