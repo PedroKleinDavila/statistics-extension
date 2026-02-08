@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { StatsState } from '../types';
-import { formatTime } from '../utils/formatTime';
-import { formatLines } from '../utils/formatLines';
-import { getProject } from '../utils/getProject';
-import { getLanguage } from '../utils/getLanguage';
+import { getTime } from '../utils/data/getTime';
+import { getLines } from '../utils/data/getLines';
+import { getProject } from '../utils/data/getProject';
+import { getLanguage } from '../utils/data/getLanguage';
 
 export function updateStatsBar(
 	context: vscode.ExtensionContext,
@@ -15,8 +15,8 @@ export function updateStatsBar(
 		return;
 	}
 
-	const totalTime = formatTime(stats.total.time);
-	const totalLines = formatLines(stats.total.manualAdd - stats.total.manualDelete);
+	const totalTime = getTime(stats.total.time);
+	const totalLines = getLines(stats.total.manualAdd - stats.total.manualDelete);
 
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) return;
@@ -25,14 +25,14 @@ export function updateStatsBar(
 
 	let languageText = '—';
 	if (language && stats.byLanguage[language]) {
-		languageText = `${language.toUpperCase()} ${formatTime(
+		languageText = `${language.toUpperCase()} ${getTime(
 			stats.byLanguage[language].time
 		)}`;
 	}
 
 	let projectText = '—';
 	if (project && stats.byProject[project]) {
-		projectText = `${project} ${formatTime(
+		projectText = `${project} ${getTime(
 			stats.byProject[project].time
 		)}`;
 	}

@@ -1,6 +1,6 @@
-import { StatsState } from "../types";
+import { StatsState } from "../../types";
 import * as vscode from 'vscode';
-import { closeActiveContext } from "../utils/closeActiveContext";
+import { closeActiveContext } from "../../utils/closeActiveContext";
 
 export function handleWindowStateChange(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeWindowState(e => {

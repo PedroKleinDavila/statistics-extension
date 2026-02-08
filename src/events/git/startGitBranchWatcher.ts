@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { StatsState } from '../types';
+import { StatsState } from '../../types';
 export async function startGitBranchWatcher(context: vscode.ExtensionContext) {
     const gitExtension = vscode.extensions.getExtension('vscode.git')?.exports;
     const api = gitExtension?.getAPI(1);

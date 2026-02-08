@@ -1,4 +1,4 @@
-export function formatTime(ms: number): string {
+export function getTime(ms: number): string {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
 

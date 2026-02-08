@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { StatsState } from '../types';
-import { closeActiveContext } from '../utils/closeActiveContext';
-import { getLanguage } from '../utils/getLanguage';
-import { getProject } from '../utils/getProject';
+import { StatsState } from '../../types';
+import { closeActiveContext } from '../../utils/closeActiveContext';
+import { getLanguage } from '../../utils/data/getLanguage';
+import { getProject } from '../../utils/data/getProject';
 
 export function registerEditorTracking(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(editor => {

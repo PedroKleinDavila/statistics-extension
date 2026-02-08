@@ -1,4 +1,4 @@
-export function formatLines(lines: number): string {
+export function getLines(lines: number): string {
     if (lines >= 1000) {
         return `${(lines / 1000).toFixed(1)}k`;
     }

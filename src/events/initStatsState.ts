@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { StatsState } from '../types';
 
-export function initStatsState(context: vscode.ExtensionContext, document?: vscode.TextDocument) {
+export function initStatsState(context: vscode.ExtensionContext) {
     context.workspaceState.get('stats');
 
     const initialStats: StatsState = {

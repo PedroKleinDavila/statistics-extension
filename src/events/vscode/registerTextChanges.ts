@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { getLanguage } from '../utils/getLanguage';
-import { getProject } from '../utils/getProject';
-import { StatsState } from '../types';
-import { updateCounters } from '../utils/updateCounters';
+import { getLanguage } from '../../utils/data/getLanguage';
+import { getProject } from '../../utils/data/getProject';
+import { StatsState } from '../../types';
+import { updateCounters } from '../../utils/updateCounters';
 
 export function registerTextChanges(context: vscode.ExtensionContext) {
     context.subscriptions.push(

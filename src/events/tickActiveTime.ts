@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { StatsState } from '../types';
-import { ensureCounters } from './updateCounters';
+import { ensureCounters } from '../utils/updateCounters';
 export function tickActiveTime(context: vscode.ExtensionContext) {
     const stats = context.workspaceState.get<StatsState>('stats');
     if (!stats) return;
