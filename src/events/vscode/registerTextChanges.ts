@@ -8,17 +8,36 @@ export function registerTextChanges(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(event => {
             if (event.contentChanges.length === 0) return;
+
             const stats = context.workspaceState.get<StatsState>('stats');
-            if (!stats) return;
+            if (!stats) {
+                //console.log('text.change.skipped.noStats');
+                return;
+            }
+
             if (stats.ignoreChanges) {
                 stats.ignoreChanges = false;
                 context.workspaceState.update('stats', stats);
+                //console.log('text.change.ignored');
                 return;
             }
 
             const document = event.document;
+            const now = Date.now();
             const language = getLanguage(document);
             const projectId = getProject(document);
+
+            //console.log('text.change.received', {
+            // document: document.uri.toString(),
+            //     language,
+            //     projectId,
+            //     changes: event.contentChanges.length,
+            //         isActiveEditorDocument: vscode.window.activeTextEditor?.document.uri.toString() === document.uri.toString(),
+            //             windowState: stats.windowState,
+            //                 activeContextLanguage: stats.activeContext.language ?? null,
+            //                     activeContextProjectId: stats.activeContext.projectId ?? null,
+            //                         activeContextAgeMs: now - stats.activeContext.since,
+            // });
 
             for (const change of event.contentChanges) {
                 const addedLines = change.text.split('\n').length - 1;
@@ -40,6 +59,7 @@ export function registerTextChanges(context: vscode.ExtensionContext) {
                     removedLines,
                 });
             }
+
             context.workspaceState.update('stats', stats);
         })
     );

@@ -15,27 +15,33 @@ export function updateStatsBar(
 		return;
 	}
 
-	const totalTime = getTime(stats.total.time);
 	const totalLines = getLines(stats.total.manualAdd - stats.total.manualDelete);
 
 	const editor = vscode.window.activeTextEditor;
-	if (!editor) return;
-	const language = getLanguage(editor.document);
-	const project = getProject(editor.document);
+	const language = stats.activeContext.language
+		?? (editor ? getLanguage(editor.document) : undefined);
+	const project = stats.activeContext.projectId
+		?? (editor ? getProject(editor.document) : undefined);
+	const now = Date.now();
+	const liveDelta = stats.windowState === 'active'
+		? Math.max(0, now - stats.activeContext.since)
+		: 0;
 
-	let languageText = '—';
-	if (language && stats.byLanguage[language]) {
-		languageText = `${language.toUpperCase()} ${getTime(
-			stats.byLanguage[language].time
-		)}`;
-	}
+	const totalTime = getTime(stats.total.time + liveDelta);
 
-	let projectText = '—';
-	if (project && stats.byProject[project]) {
-		projectText = `${project} ${getTime(
-			stats.byProject[project].time
-		)}`;
-	}
+	const languageBaseTime = language ? (stats.byLanguage[language]?.time ?? 0) : 0;
+	const languageLiveTime =
+		stats.activeContext.language === language ? liveDelta : 0;
+	const languageText = language
+		? `${language.toUpperCase()} ${getTime(languageBaseTime + languageLiveTime)}`
+		: '—';
+
+	const projectBaseTime = project ? (stats.byProject[project]?.time ?? 0) : 0;
+	const projectLiveTime =
+		stats.activeContext.projectId === project ? liveDelta : 0;
+	const projectText = project
+		? `${project} ${getTime(projectBaseTime + projectLiveTime)}`
+		: '—';
 
 	statusBarItem.text =
 		`$(pulse) ${totalTime} • ${totalLines}L | ` +

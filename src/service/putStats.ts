@@ -24,7 +24,7 @@
 //         });
 
 //         if (response.status === 200) {
-//             console.log("Estatísticas enviadas com sucesso!");
+//             
 //         } else {
 //             console.error("Erro ao enviar estatísticas:", response.statusText);
 //         }
