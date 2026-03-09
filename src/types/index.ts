@@ -32,3 +32,28 @@ export type UpdateContext = {
     addedLines: number;
     removedLines: number;
 };
+
+export type StatsIngestPayload = {
+    date: string;
+    byLanguage: Record<string, StatCounters>;
+    byProject: Record<string, StatCounters>;
+    total: StatCounters;
+};
+
+export type PendingStatistic = {
+    id: string;
+    createdAt: string;
+    payload: StatsIngestPayload;
+};
+
+export type ExtensionIdentity = {
+    githubEmail: string;
+    machineId: string;
+};
+
+export type ExtensionLoginSuccess = {
+    userId: string;
+    email: string;
+    accessToken: string;
+    expiresAtUtc: string;
+};

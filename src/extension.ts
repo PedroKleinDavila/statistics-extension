@@ -7,51 +7,80 @@ import { updateStatsBar } from './statusBar';
 import { startGitBranchWatcher } from './events/git/startGitBranchWatcher';
 import { tickActiveTime } from './events/tickActiveTime';
 import { registerEditorTracking } from './events/vscode/registerEditorTracking';
+import { getApiBaseUrl } from './service/api';
+import { AuthService } from './service/AuthService';
+import { StatsQueue } from './service/StatsQueue';
+import { SyncService } from './service/SyncService';
+import { StatCounters, StatsIngestPayload, StatsState } from './types';
+
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
-export async function activate(context: vscode.ExtensionContext) {
-	//console.log('extension.activate.start', {
-	// workspaceFolders: vscode.workspace.workspaceFolders?.map(folder => folder.uri.fsPath).length ?? 0,
-	// 	activeEditor: vscode.window.activeTextEditor?.document.uri.toString() ?? null,
-	// });
+let authService: AuthService | undefined;
+let syncService: SyncService | undefined;
 
+function hasCounters(counters: StatCounters): boolean {
+	return (
+		counters.manualAdd !== 0 ||
+		counters.manualDelete !== 0 ||
+		counters.assistedAdd !== 0 ||
+		counters.assistedDelete !== 0 ||
+		counters.bulkAdd !== 0 ||
+		counters.bulkDelete !== 0 ||
+		counters.time !== 0
+	);
+}
+
+function buildPayloadFromStats(stats: StatsState): StatsIngestPayload {
+	const now = new Date();
+	const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+	return {
+		date: localDate,
+		byLanguage: Object.fromEntries(
+			Object.entries(stats.byLanguage).map(([key, counters]) => [key, { ...counters }])
+		),
+		byProject: Object.fromEntries(
+			Object.entries(stats.byProject).map(([key, counters]) => [key, { ...counters }])
+		),
+		total: { ...stats.total },
+	};
+}
+
+async function recoverWorkspaceStatsToQueue(
+	context: vscode.ExtensionContext,
+	queue: StatsQueue,
+) {
+	const existing = context.workspaceState.get<StatsState>('stats');
+	if (!existing || !hasCounters(existing.total)) {
+		return;
+	}
+
+	await queue.enqueue(buildPayloadFromStats(existing));
+	await context.workspaceState.update('stats', null);
+}
+
+export async function activate(context: vscode.ExtensionContext) {
 	extensionContext = context;
+	const statsQueue = new StatsQueue(context);
+	await recoverWorkspaceStatsToQueue(context, statsQueue);
+
+	const apiBaseUrl = getApiBaseUrl();
 	const email = await getUserEmail();
 	const machineId = vscode.env.machineId;
-	//console.log(email);
-	//console.log('extension.activate.identity.loaded', {
-	// hasEmail: Boolean(email),
-	// 	hasMachineId: Boolean(machineId),
-	// 	});
+
 	if (!email) {
-		vscode.window.showErrorMessage('User email not found. Please log in to the extension.');
-		context.workspaceState.update('userEmail', null);
-		//console.log('extension.activate.abort.missingEmail');
-		return;
+		vscode.window.showWarningMessage('GitHub email not found. Statistics will be collected locally until authentication is available.');
+		await context.workspaceState.update('userEmail', null);
 	}
+
 	if (!machineId) {
-		vscode.window.showErrorMessage('Machine ID not found. Please check your VSCode installation.');
-		context.workspaceState.update('userEmail', null);
-		//console.log('extension.activate.abort.missingMachineId');
-		return;
+		vscode.window.showWarningMessage('Machine ID not found. Statistics will be collected locally until authentication is available.');
+		await context.workspaceState.update('userEmail', null);
 	}
-	// const authenticated = await authUser(email, machineId);
-	// context.workspaceState.update('needsLogin', false);
-	// if (authenticated === "User not found") {//achar forma de tentar de novo depois de um tempo
-	// 	vscode.window.showErrorMessage('User not found. Please check your email or register.');
-	// 	context.workspaceState.update('needsLogin', true);
-	// 	context.workspaceState.update('userEmail', null);
-	// 	vscode.env.openExternal(vscode.Uri.parse(`https://coding-statistics-frontend.vercel.app/${email}/${machineId}`));
-	// }
-	// if (!authenticated) {//achar forma de tentar de novo depois de um tempo
-	// 	vscode.window.showErrorMessage('Authentication failed. Please check your internet connection.');
-	// 	context.workspaceState.update('needsLogin', true);
-	// 	context.workspaceState.update('userEmail', null);
-	// }
-	context.workspaceState.update('userEmail', email);
-	context.workspaceState.update('machineId', machineId);
+
+	await context.workspaceState.update('userEmail', email ?? null);
+	await context.workspaceState.update('machineId', machineId ?? null);
 	initStatsState(context);
-	//console.log('extension.activate.stats.initialized');
 
 	startGitBranchWatcher(context);
 	registerEditorTracking(context);
@@ -70,11 +99,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	const tickInterval = setInterval(() => {
 		tickActiveTime(context);
 	}, 60000);
-	//console.log('extension.activate.interval.tickActiveTime.created', { intervalMs: 60000 });
+
 	const statsBarInterval = setInterval(() => {
 		updateStatsBar(context, statsStatusBarItem);
 	}, 500);
-	//console.log('extension.activate.interval.statusBar.created', { intervalMs: 500 });
 
 	context.subscriptions.push({
 		dispose() {
@@ -82,6 +110,21 @@ export async function activate(context: vscode.ExtensionContext) {
 			clearInterval(statsBarInterval);
 		}
 	});
+
+	if (email && machineId) {
+		authService = new AuthService(apiBaseUrl, {
+			githubEmail: email,
+			machineId,
+		}, {
+			onAuthenticated: async () => {
+				await syncService?.onAuthenticated();
+			},
+		});
+	}
+
+	syncService = new SyncService(context, apiBaseUrl, statsQueue, authService);
+	syncService.start();
+	authService?.start();
 }
 
 export async function deactivate() {
@@ -89,14 +132,7 @@ export async function deactivate() {
 		console.error('Extension context is not available.');
 		return;
 	}
-	//console.log('extension.deactivate.start');
-	const email = extensionContext.workspaceState.get('userEmail', null);
-	if (email) {
-		//console.log(`Logged in user: ${email}`);
-		//console.log('extension.deactivate.user', { hasEmail: true });
-	} else {
-		//console.log('User not authenticated or email unavailable');
-		//console.log('extension.deactivate.user', { hasEmail: false });
-		return;
-	}
+	authService?.stop();
+	syncService?.stop();
+	await syncService?.syncNow();
 }

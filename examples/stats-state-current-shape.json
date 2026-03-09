@@ -1,0 +1,49 @@
+{
+    "byLanguage": {
+        "typescript": {
+            "manualAdd": 34,
+            "manualDelete": 6,
+            "assistedAdd": 14,
+            "assistedDelete": 3,
+            "bulkAdd": 52,
+            "bulkDelete": 17,
+            "time": 960000
+        },
+        "json": {
+            "manualAdd": 2,
+            "manualDelete": 0,
+            "assistedAdd": 0,
+            "assistedDelete": 0,
+            "bulkAdd": 12,
+            "bulkDelete": 6,
+            "time": 60000
+        }
+    },
+    "byProject": {
+        "statistics-extension": {
+            "manualAdd": 36,
+            "manualDelete": 6,
+            "assistedAdd": 14,
+            "assistedDelete": 3,
+            "bulkAdd": 64,
+            "bulkDelete": 23,
+            "time": 1020000
+        }
+    },
+    "total": {
+        "manualAdd": 36,
+        "manualDelete": 6,
+        "assistedAdd": 14,
+        "assistedDelete": 3,
+        "bulkAdd": 64,
+        "bulkDelete": 23,
+        "time": 1020000
+    },
+    "windowState": "active",
+    "activeContext": {
+        "language": "typescript",
+        "projectId": "statistics-extension",
+        "since": 1772626490123
+    },
+    "ignoreChanges": false
+}

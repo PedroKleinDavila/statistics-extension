@@ -4,8 +4,6 @@ import { getLanguage } from '../utils/data/getLanguage';
 import { getProject } from '../utils/data/getProject';
 
 export function initStatsState(context: vscode.ExtensionContext) {
-    context.workspaceState.get('stats');
-
     const activeEditor = vscode.window.activeTextEditor;
     const now = Date.now();
     const initialLanguage = activeEditor ? getLanguage(activeEditor.document) : undefined;
@@ -33,11 +31,4 @@ export function initStatsState(context: vscode.ExtensionContext) {
     };
 
     context.workspaceState.update('stats', initialStats);
-    //console.log('stats.init', {
-    // hasActiveEditorAtStartup: Boolean(activeEditor),
-    //     activeEditorDocument: activeEditor?.document.uri.toString() ?? null,
-    //         activeEditorLanguage: activeEditor?.document.languageId ?? null,
-    //             activeEditorProject: initialProjectId ?? null,
-    //                 initialWindowState: initialStats.windowState,
-    // });
 }
