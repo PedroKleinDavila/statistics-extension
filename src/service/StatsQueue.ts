@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { PendingStatistic, StatsIngestPayload } from '../types';
 
-const PENDING_STATS_BY_DAY_KEY = 'pendingStatisticsByDay';
+export const PENDING_STATS_BY_DAY_KEY = 'pendingStatisticsByDay';
 
 type PendingByDay = Record<string, StatsIngestPayload>;
 
@@ -53,16 +53,23 @@ function mergePayload(target: StatsIngestPayload, source: StatsIngestPayload): S
     return target;
 }
 
+function clonePendingByDay(map: PendingByDay): PendingByDay {
+    return Object.fromEntries(
+        Object.entries(map).map(([date, payload]) => [date, clonePayload(payload)])
+    );
+}
+
 export class StatsQueue {
     private readonly context: vscode.ExtensionContext;
     private pendingByDay: PendingByDay = {};
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
-        this.pendingByDay = context.globalState.get<PendingByDay>(PENDING_STATS_BY_DAY_KEY, {});
+        this.pendingByDay = this.readLatest();
     }
 
     public getAll(): PendingStatistic[] {
+        this.pendingByDay = this.readLatest();
         return Object.keys(this.pendingByDay)
             .sort((a, b) => a.localeCompare(b))
             .map(date => ({
@@ -73,26 +80,37 @@ export class StatsQueue {
     }
 
     public async enqueue(payload: StatsIngestPayload): Promise<void> {
+        const latest = this.readLatest();
         const dayKey = payload.date;
-        if (!this.pendingByDay[dayKey]) {
-            this.pendingByDay[dayKey] = clonePayload(payload);
+        if (!latest[dayKey]) {
+            latest[dayKey] = clonePayload(payload);
         } else {
-            this.pendingByDay[dayKey] = mergePayload(this.pendingByDay[dayKey], payload);
+            latest[dayKey] = mergePayload(latest[dayKey], payload);
         }
 
-        await this.persist();
+        this.pendingByDay = latest;
+        await this.persist(latest);
     }
 
     public async removeById(id: string): Promise<void> {
-        delete this.pendingByDay[id];
-        await this.persist();
+        const latest = this.readLatest();
+        delete latest[id];
+
+        this.pendingByDay = latest;
+        await this.persist(latest);
     }
 
     public size(): number {
+        this.pendingByDay = this.readLatest();
         return Object.keys(this.pendingByDay).length;
     }
 
-    private async persist(): Promise<void> {
-        await this.context.globalState.update(PENDING_STATS_BY_DAY_KEY, this.pendingByDay);
+    private readLatest(): PendingByDay {
+        const latest = this.context.globalState.get<PendingByDay>(PENDING_STATS_BY_DAY_KEY, {});
+        return clonePendingByDay(latest);
+    }
+
+    private async persist(pendingByDay: PendingByDay): Promise<void> {
+        await this.context.globalState.update(PENDING_STATS_BY_DAY_KEY, clonePendingByDay(pendingByDay));
     }
 }

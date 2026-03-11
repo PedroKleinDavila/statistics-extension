@@ -37,6 +37,38 @@
           "type": "string",
           "default": "http://localhost:3024",
           "description": "URL da API usada pela extensão"
+        },
+        "codingstatistics.statusBar.mode": {
+          "type": "string",
+          "enum": [
+            "compact",
+            "balanced",
+            "deep"
+          ],
+          "default": "balanced",
+          "description": "Modo de exibição da barra de status (compacto, equilibrado ou detalhado)."
+        },
+        "codingstatistics.statusBar.primaryMetric": {
+          "type": "string",
+          "enum": [
+            "time",
+            "manualLines",
+            "netLines",
+            "assistedShare",
+            "productivityScore"
+          ],
+          "default": "time",
+          "description": "Métrica principal mostrada na barra de status."
+        },
+        "codingstatistics.statusBar.timeFormat": {
+          "type": "string",
+          "enum": [
+            "human",
+            "hhmmss",
+            "minutes"
+          ],
+          "default": "human",
+          "description": "Formato de tempo na barra e tooltip."
         }
       }
     }

@@ -102,7 +102,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	const statsBarInterval = setInterval(() => {
 		updateStatsBar(context, statsStatusBarItem);
-	}, 500);
+	}, 1000);
 
 	context.subscriptions.push({
 		dispose() {

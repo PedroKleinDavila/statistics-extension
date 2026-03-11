@@ -14,6 +14,13 @@ export type ActiveContext = {
     since: number;
 };
 
+export type SyncedDailyStats = {
+    date: string;
+    byLanguage: Record<string, StatCounters>;
+    byProject: Record<string, StatCounters>;
+    total: StatCounters;
+};
+
 export type StatsState = {
     byLanguage: Record<string, StatCounters>;
     byProject: Record<string, StatCounters>;
