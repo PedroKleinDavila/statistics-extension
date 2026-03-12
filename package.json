@@ -27,6 +27,11 @@
         "command": "catCoding.start",
         "title": "Start new cat coding session",
         "category": "Cat Coding"
+      },
+      {
+        "command": "codingstatistics.openFrontend",
+        "title": "Open CodingStats Dashboard",
+        "category": "Coding Statistics"
       }
     ],
     "configuration": {

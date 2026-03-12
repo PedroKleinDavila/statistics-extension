@@ -13,6 +13,9 @@ import { StatsQueue } from './service/StatsQueue';
 import { SyncService } from './service/SyncService';
 import { StatCounters, StatsIngestPayload, StatsState } from './types';
 
+const FRONTEND_DASHBOARD_URL = 'https://codingstats.me';
+const OPEN_FRONTEND_COMMAND = 'codingstatistics.openFrontend';
+
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
 let authService: AuthService | undefined;
@@ -92,6 +95,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		100
 	);
 
+	const openFrontendCommand = vscode.commands.registerCommand(OPEN_FRONTEND_COMMAND, async () => {
+		await vscode.env.openExternal(vscode.Uri.parse(FRONTEND_DASHBOARD_URL));
+	});
+	context.subscriptions.push(openFrontendCommand);
+
+	statsStatusBarItem.command = OPEN_FRONTEND_COMMAND;
 	statsStatusBarItem.tooltip = 'Coding Statistics';
 	statsStatusBarItem.show();
 	context.subscriptions.push(statsStatusBarItem);
