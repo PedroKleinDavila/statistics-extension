@@ -35,7 +35,7 @@
       "properties": {
         "codingstatistics.apiUrl": {
           "type": "string",
-          "default": "http://localhost:3024",
+          "default": "https://api.codingstats.me",
           "description": "URL da API usada pela extensão"
         },
         "codingstatistics.statusBar.mode": {
