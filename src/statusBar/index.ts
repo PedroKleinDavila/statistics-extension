@@ -258,9 +258,8 @@ export function updateStatsBar(
 		`• ${topProjects}\n\n` +
 		`Sincronização\n` +
 		`• Status: ${syncStatusText}\n` +
-		`• Pendentes na fila: ${pendingCount}\n` +
-		`• Último sucesso: ${lastSuccessText}\n` +
-		`• Último erro: ${lastErrorText}`;
+		`• Pendentes para envio: ${pendingCount}\n` +
+		`• Última sincronização: ${lastSuccessText}\n`;
 
 	const nowForTooltip = Date.now();
 	const tooltipStableKey = [
