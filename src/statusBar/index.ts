@@ -241,25 +241,25 @@ export function updateStatsBar(
 		: '—';
 
 	const tooltipText =
-		`Hoje (Total)\n` +
-		`• Tempo: ${totalTimeText}\n` +
-		`• Linhas líquidas: ${formatSigned(totalNet)}\n` +
-		`• Manual: ${formatSigned(manualNet)} | Assistido: ${formatSigned(assistedNet)} | Bulk: ${formatSigned(bulkNet)}\n\n` +
-		`Taxas\n` +
-		`• Linhas/hora: ${linesPerHour.toFixed(1)}\n` +
-		`• Assistido: ${(assistedShare * 100).toFixed(1)}% | Bulk: ${(bulkShare * 100).toFixed(1)}%\n` +
+		`Today (Total)\n` +
+		`• Time: ${totalTimeText}\n` +
+		`• Net lines: ${formatSigned(totalNet)}\n` +
+		`• Manual: ${formatSigned(manualNet)} | Assisted: ${formatSigned(assistedNet)} | Bulk: ${formatSigned(bulkNet)}\n\n` +
+		`Rates\n` +
+		`• Lines/hour: ${linesPerHour.toFixed(1)}\n` +
+		`• Assisted: ${(assistedShare * 100).toFixed(1)}% | Bulk: ${(bulkShare * 100).toFixed(1)}%\n` +
 		`• Score: ${productivityScore}\n\n` +
-		`Contexto Atual\n` +
-		`• Linguagem: ${languageText}\n` +
-		`• Projeto: ${projectText}\n\n` +
-		`Top Linguagens (tempo)\n` +
+		`Current Context\n` +
+		`• Language: ${languageText}\n` +
+		`• Project: ${projectText}\n\n` +
+		`Top Languages (time)\n` +
 		`• ${topLanguages}\n\n` +
-		`Top Projetos (tempo)\n` +
+		`Top Projects (time)\n` +
 		`• ${topProjects}\n\n` +
-		`Sincronização\n` +
+		`Synchronization\n` +
 		`• Status: ${syncStatusText}\n` +
-		`• Pendentes para envio: ${pendingCount}\n` +
-		`• Última sincronização: ${lastSuccessText}\n`;
+		`• Pending uploads: ${pendingCount}\n` +
+		`• Last successful sync: ${lastSuccessText}\n`;
 
 	const nowForTooltip = Date.now();
 	const tooltipStableKey = [

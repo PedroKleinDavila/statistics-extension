@@ -1,7 +1,7 @@
 {
   "name": "coding-statistics",
   "displayName": "Coding Statistics",
-  "description": "",
+  "description": "Track coding time, edits, projects, and languages with sync to CodingStats.",
   "icon": "icon.png",
   "publisher": "PedroKlein",
   "version": "1.2.1",
@@ -36,12 +36,12 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "Minha Extensão",
+      "title": "Coding Statistics",
       "properties": {
         "codingstatistics.apiUrl": {
           "type": "string",
           "default": "https://api.codingstats.me",
-          "description": "URL da API usada pela extensão"
+          "description": "Base API URL used by the extension."
         },
         "codingstatistics.statusBar.mode": {
           "type": "string",
@@ -51,7 +51,7 @@
             "deep"
           ],
           "default": "balanced",
-          "description": "Modo de exibição da barra de status (compacto, equilibrado ou detalhado)."
+          "description": "Status bar display mode (compact, balanced, or deep)."
         },
         "codingstatistics.statusBar.primaryMetric": {
           "type": "string",
@@ -63,7 +63,7 @@
             "productivityScore"
           ],
           "default": "time",
-          "description": "Métrica principal mostrada na barra de status."
+          "description": "Primary metric displayed in the status bar."
         },
         "codingstatistics.statusBar.timeFormat": {
           "type": "string",
@@ -73,7 +73,7 @@
             "minutes"
           ],
           "default": "human",
-          "description": "Formato de tempo na barra e tooltip."
+          "description": "Time format used in the status bar and tooltip."
         }
       }
     }
