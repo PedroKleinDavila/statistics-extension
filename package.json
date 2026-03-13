@@ -1,7 +1,7 @@
 {
   "name": "coding-statistics",
   "displayName": "Coding Statistics",
-  "description": "",
+  "description": "Track coding time, edits, projects, and languages with sync to CodingStats.",
   "icon": "icon.png",
   "publisher": "PedroKlein",
   "version": "1.2.1",
@@ -27,16 +27,53 @@
         "command": "catCoding.start",
         "title": "Start new cat coding session",
         "category": "Cat Coding"
+      },
+      {
+        "command": "codingstatistics.openFrontend",
+        "title": "Open CodingStats Dashboard",
+        "category": "Coding Statistics"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "Minha Extensão",
+      "title": "Coding Statistics",
       "properties": {
         "codingstatistics.apiUrl": {
           "type": "string",
-          "default": "asd",
-          "description": "URL da API usada pela extensão"
+          "default": "https://api.codingstats.me",
+          "description": "Base API URL used by the extension."
+        },
+        "codingstatistics.statusBar.mode": {
+          "type": "string",
+          "enum": [
+            "compact",
+            "balanced",
+            "deep"
+          ],
+          "default": "balanced",
+          "description": "Status bar display mode (compact, balanced, or deep)."
+        },
+        "codingstatistics.statusBar.primaryMetric": {
+          "type": "string",
+          "enum": [
+            "time",
+            "manualLines",
+            "netLines",
+            "assistedShare",
+            "productivityScore"
+          ],
+          "default": "time",
+          "description": "Primary metric displayed in the status bar."
+        },
+        "codingstatistics.statusBar.timeFormat": {
+          "type": "string",
+          "enum": [
+            "human",
+            "hhmmss",
+            "minutes"
+          ],
+          "default": "human",
+          "description": "Time format used in the status bar and tooltip."
         }
       }
     }

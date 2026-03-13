@@ -1,102 +1,147 @@
 import * as vscode from 'vscode';
-import { handleFileCreation } from './events/onFileCreation';
-import { handleTextDocumentChange } from './events/onTextChange';
-import { handleWindowStateChange } from './events/onWindowChange';
-import { getUserEmail } from './utils/getUserEmail';
-import { putStats } from './service/putStats';
-import { startGitBranchWatcher } from './events/branchWatcher';
-import { authUser } from './service/authUser';
+import { handleWindowStateChange } from './events/vscode/handleWindowStateChange';
+import { getUserEmail } from './utils/data/getUserEmail';
+import { registerTextChanges } from './events/vscode/registerTextChanges';
+import { initStatsState } from './events/initStatsState';
 import { updateStatsBar } from './statusBar';
+import { startGitBranchWatcher } from './events/git/startGitBranchWatcher';
+import { tickActiveTime } from './events/tickActiveTime';
+import { registerEditorTracking } from './events/vscode/registerEditorTracking';
+import { getApiBaseUrl } from './service/api';
+import { AuthService } from './service/AuthService';
+import { StatsQueue } from './service/StatsQueue';
+import { SyncService } from './service/SyncService';
+import { StatCounters, StatsIngestPayload, StatsState } from './types';
+
+const FRONTEND_DASHBOARD_URL = 'https://codingstats.me';
+const OPEN_FRONTEND_COMMAND = 'codingstatistics.openFrontend';
+
 let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
-let reconnectStatusBarItem: vscode.StatusBarItem;
+let authService: AuthService | undefined;
+let syncService: SyncService | undefined;
+
+function hasCounters(counters: StatCounters): boolean {
+	return (
+		counters.manualAdd !== 0 ||
+		counters.manualDelete !== 0 ||
+		counters.assistedAdd !== 0 ||
+		counters.assistedDelete !== 0 ||
+		counters.bulkAdd !== 0 ||
+		counters.bulkDelete !== 0 ||
+		counters.time !== 0
+	);
+}
+
+function buildPayloadFromStats(stats: StatsState): StatsIngestPayload {
+	const now = new Date();
+	const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+	return {
+		date: localDate,
+		byLanguage: Object.fromEntries(
+			Object.entries(stats.byLanguage).map(([key, counters]) => [key, { ...counters }])
+		),
+		byProject: Object.fromEntries(
+			Object.entries(stats.byProject).map(([key, counters]) => [key, { ...counters }])
+		),
+		total: { ...stats.total },
+	};
+}
+
+async function recoverWorkspaceStatsToQueue(
+	context: vscode.ExtensionContext,
+	queue: StatsQueue,
+) {
+	const existing = context.workspaceState.get<StatsState>('stats');
+	if (!existing || !hasCounters(existing.total)) {
+		return;
+	}
+
+	await queue.enqueue(buildPayloadFromStats(existing));
+	await context.workspaceState.update('stats', null);
+}
+
 export async function activate(context: vscode.ExtensionContext) {
 	extensionContext = context;
+	const statsQueue = new StatsQueue(context);
+	await recoverWorkspaceStatsToQueue(context, statsQueue);
+
+	const apiBaseUrl = getApiBaseUrl();
 	const email = await getUserEmail();
 	const machineId = vscode.env.machineId;
-	if (!email) {
-		vscode.window.showErrorMessage('User email not found. Please log in to the extension.');
-		context.workspaceState.update('userEmail', null);
-		return;
-	}
-	if (!machineId) {
-		vscode.window.showErrorMessage('Machine ID not found. Please check your VSCode installation.');
-		context.workspaceState.update('userEmail', null);
-		return;
-	}
-	const authenticated = await authUser(email, machineId);
-	context.workspaceState.update('needsLogin', false);
-	if (authenticated === "User not found") {
-		vscode.window.showErrorMessage('User not found. Please check your email or register.');
-		context.workspaceState.update('needsLogin', true);
-		context.workspaceState.update('userEmail', null);
-		vscode.env.openExternal(vscode.Uri.parse(`https://coding-statistics-frontend.vercel.app/${email}/${machineId}`));
-	}
-	if (!authenticated) {
-		vscode.window.showErrorMessage('Authentication failed. Please check your internet connection.');
-		context.workspaceState.update('needsLogin', true);
-		context.workspaceState.update('userEmail', null);
-	}
-	context.workspaceState.update('userEmail', email);
-	context.workspaceState.update('machineId', machineId);
-	context.workspaceState.update('linesWritten', 0);
-	context.workspaceState.update('lettersWritten', 0);
-	context.workspaceState.update('totalTime', 0);
-	context.workspaceState.update('filesCreated', 0);
-	context.workspaceState.update('windowState', 'active');
-	context.workspaceState.update('startTime', Date.now());
 
-	statsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+	if (!email) {
+		vscode.window.showWarningMessage('GitHub email not found. Statistics will be collected locally until authentication is available.');
+		await context.workspaceState.update('userEmail', null);
+	}
+
+	if (!machineId) {
+		vscode.window.showWarningMessage('Machine ID not found. Statistics will be collected locally until authentication is available.');
+		await context.workspaceState.update('userEmail', null);
+	}
+
+	await context.workspaceState.update('userEmail', email ?? null);
+	await context.workspaceState.update('machineId', machineId ?? null);
+	initStatsState(context);
+
+	startGitBranchWatcher(context);
+	registerEditorTracking(context);
+	registerTextChanges(context);
+	handleWindowStateChange(context);
+
+	statsStatusBarItem = vscode.window.createStatusBarItem(
+		vscode.StatusBarAlignment.Left,
+		100
+	);
+
+	const openFrontendCommand = vscode.commands.registerCommand(OPEN_FRONTEND_COMMAND, async () => {
+		await vscode.env.openExternal(vscode.Uri.parse(FRONTEND_DASHBOARD_URL));
+	});
+	context.subscriptions.push(openFrontendCommand);
+
+	statsStatusBarItem.command = OPEN_FRONTEND_COMMAND;
 	statsStatusBarItem.tooltip = 'Coding Statistics';
 	statsStatusBarItem.show();
+	context.subscriptions.push(statsStatusBarItem);
 
-	reconnectStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+	const tickInterval = setInterval(() => {
+		tickActiveTime(context);
+	}, 60000);
 
-	context.subscriptions.push(statsStatusBarItem, reconnectStatusBarItem);
-	updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem);
+	const statsBarInterval = setInterval(() => {
+		updateStatsBar(context, statsStatusBarItem);
+	}, 1000);
 
-	startGitBranchWatcher(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
-	handleTextDocumentChange(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
-	handleFileCreation(context, () => updateStatsBar(extensionContext, statsStatusBarItem, reconnectStatusBarItem));
-	handleWindowStateChange(context);
+	context.subscriptions.push({
+		dispose() {
+			clearInterval(tickInterval);
+			clearInterval(statsBarInterval);
+		}
+	});
+
+	if (email && machineId) {
+		authService = new AuthService(apiBaseUrl, {
+			githubEmail: email,
+			machineId,
+		}, {
+			onAuthenticated: async () => {
+				await syncService?.onAuthenticated();
+			},
+		});
+	}
+
+	syncService = new SyncService(context, apiBaseUrl, statsQueue, authService);
+	syncService.start();
+	authService?.start();
 }
 
 export async function deactivate() {
-	const email = extensionContext.workspaceState.get('userEmail', null);
-	if (email) {
-		console.log(`Logged in user: ${email}`);
-	} else {
-		console.log('User not authenticated or email unavailable');
-		return;
-	}
 	if (!extensionContext) {
 		console.error('Extension context is not available.');
 		return;
 	}
-	const linesWritten = extensionContext.workspaceState.get('linesWritten', 0);
-	const lettersWritten = extensionContext.workspaceState.get('lettersWritten', 0);
-	const filesCreated = extensionContext.workspaceState.get('filesCreated', 0);
-	let totalTime = extensionContext.workspaceState.get('totalTime', 0);
-	const startTime = extensionContext.workspaceState.get('startTime', null);
-	const machineId = extensionContext.workspaceState.get('machineId', null) ?? "";
-
-	if (startTime !== null) {
-		const sessionTime = Date.now() - startTime;
-		totalTime += sessionTime;
-		extensionContext.workspaceState.update('totalTime', totalTime);
-	}
-
-	console.log(`Statistics on VSCode shutdown:
-    Lines written: ${linesWritten}
-    Characters written: ${lettersWritten}
-    Total time: ${Math.floor(totalTime / 1000)} seconds
-    Files created: ${filesCreated}`);
-	await putStats(
-		email,
-		machineId,
-		linesWritten,
-		lettersWritten,
-		Math.floor(totalTime / 1000),
-		filesCreated
-	);
+	authService?.stop();
+	syncService?.stop();
+	await syncService?.syncNow();
 }

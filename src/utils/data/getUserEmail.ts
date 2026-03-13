@@ -13,14 +13,14 @@ export async function getUserEmail(): Promise<string | null> {
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao buscar e-mails');
+            throw new Error('Failed to fetch user emails');
         }
 
         const emails = await response.json() as { email: string; primary: boolean; verified: boolean }[];
         const primaryEmail = emails.find((e) => e.primary && e.verified);
         return primaryEmail?.email ?? null;
     } catch (error) {
-        console.error('Erro ao obter e-mail do usuário:', error);
+        console.error('Failed to retrieve user email:', error);
         return null;
     }
 }
