@@ -20,14 +20,6 @@ Shows real-time coding metrics directly inside VS Code.
 
 ---
 
-## Status Bar Tooltip
-
-Hovering the status bar reveals detailed daily metrics.
-
-![Status Bar Tooltip](images/status-bar-tooltip.jpeg)
-
----
-
 ## Link Account Page
 
 When the extension cannot authenticate, it opens the account linking page.
