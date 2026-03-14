@@ -169,8 +169,8 @@ export function updateStatsBar(
 	const assistedShare = totalTouched > 0 ? assistedTouched / totalTouched : 0;
 	const bulkShare = totalTouched > 0 ? bulkTouched / totalTouched : 0;
 	const totalTimeMs = totalCounters.time + liveDelta;
-	const linesPerHour = totalTimeMs > 0 ? totalNet / (totalTimeMs / 3_600_000) : 0;
-	const productivityScore = Math.max(0, Math.min(100, Math.round(linesPerHour * (manualTouched / Math.max(1, totalTouched)) * 4)));
+	const linesPerMinute = totalTimeMs > 0 ? totalNet / (totalTimeMs / 60_000) : 0;
+	const productivityScore = Math.max(0, Math.min(100, Math.round(linesPerMinute * (manualTouched / Math.max(1, totalTouched)) * 4)));
 
 	const languageTimeMs = language
 		? (syncedDailyToday?.byLanguage[language]?.time ?? 0) + (stats.byLanguage[language]?.time ?? 0) + (stats.activeContext.language === language ? liveDelta : 0)
@@ -246,7 +246,7 @@ export function updateStatsBar(
 		`• Net lines: ${formatSigned(totalNet)}\n` +
 		`• Manual: ${formatSigned(manualNet)} | Assisted: ${formatSigned(assistedNet)} | Bulk: ${formatSigned(bulkNet)}\n\n` +
 		`Rates\n` +
-		`• Lines/hour: ${linesPerHour.toFixed(1)}\n` +
+		`• Lines/minute: ${linesPerMinute.toFixed(1)}\n` +
 		`• Assisted: ${(assistedShare * 100).toFixed(1)}% | Bulk: ${(bulkShare * 100).toFixed(1)}%\n` +
 		`• Score: ${productivityScore}\n\n` +
 		`Current Context\n` +
