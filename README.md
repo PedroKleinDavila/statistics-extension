@@ -1,104 +1,186 @@
-# 📈 Coding Statistics Extension for VS Code
+# Coding Statistics VS Code Extension
 
-**Coding Statistics** is a Visual Studio Code extension that intelligently tracks your coding activity with granular detail. Monitor your productivity across projects and languages, with comprehensive statistics sent to a custom analytics API.
+Coding Statistics is a VS Code extension that tracks your coding activity in real time and syncs it to the CodingStats platform.
 
-<p align="center">
-  <img src="./example.png" alt="Statistics Dashboard Example" width="600"/>
-</p>
+This README reflects the current production architecture across all related repositories:
 
----
-
-## What's New in Version 2
-
-This is a **major refactor** with a completely new architecture. Version 2 introduces:
-
-- **Project & Language Segmentation**: Track statistics separately for each project and programming language.
-- **AI-Assisted Coding Detection**: Distinguish between manual edits, AI-assisted changes (e.g., GitHub Copilot), and bulk edits.
-- **Advanced Line Tracking**: Detailed breakdown of lines added, deleted, and modified across different edit types.
-- **Improved Activity Detection**: Better window state awareness and real-time context tracking.
-- **Enhanced Status Bar Display**: Live statistics showing total time, lines written, language breakdown, and project focus.
+* `statistics-extension` (VS Code extension)
+* `statistics-extension-backend-2` (.NET API + persistence)
+* `statistics-extension-frontend-2` (web dashboard and account flows)
 
 ---
 
-## ⚙️ Features
+# Screenshots
 
-- **Project-Based Statistics**: Automatically track coding metrics per project with intelligent project detection.
-- **Language-Specific Tracking**: Segmented statistics for each programming language you use.
-- **Granular Line Metrics**: Track lines written with categorization:
-  - **Manual Edits**: Lines you write directly.
-  - **Assisted Edits**: Lines added via AI assistants (Copilot, etc.).
-  - **Bulk Operations**: Paste operations and multi-line changes.
-- **Real-Time Status Bar**: Live dashboard in the VS Code status bar showing:
-  - Total coding time
-  - Total lines written
-  - Current language with time spent
-  - Current project with time spent
-- **Smart Git Integration**: Automatically detects branch switches to prevent inaccurate tracking.
-- **Window State Awareness**: Tracks only active coding time, ignoring inactive periods.
-- **Email-Based Identity**: Links your statistics to your email for cross-device tracking.
-- **API Integration**: Sends statistics to a custom backend for long-term analysis and dashboard viewing.
+## Status Bar
+
+Shows real-time coding metrics directly inside VS Code.
+
+![Status Bar](images/status-bar.png)
 
 ---
 
-## 🔧 Setup
+## Status Bar Tooltip
 
-1. **Git Configuration**: Ensure your Git configuration has a `user.email` set, as it's used to identify your coding sessions.
-   ```bash
-   git config user.email "your-email@example.com"
-   ```
-2. **Install the Extension**: Download and install the extension from the VS Code Marketplace.
-3. **First Launch**: The extension will automatically initialize on VS Code startup and begin tracking your activity.
-4. **View Your Stats**: Check the status bar for real-time statistics, or visit your dashboard for detailed analysis.
+Hovering the status bar reveals detailed daily metrics.
+
+![Status Bar Tooltip](images/status-bar-tooltip.jpeg)
 
 ---
 
-## 🐞 Known Issues
+## Link Account Page
 
-- The email capture may fail if your Git configuration (`user.email`) is not set. Please ensure it's configured before using the extension.
+When the extension cannot authenticate, it opens the account linking page.
 
----
-
-## 📦 Release Notes
-
-### 2.0.0 – Major Release
-
-**Complete Rewrite with New Architecture**
-
-- Introduced **project-based tracking**: Statistics now segmented by project.
-- Introduced **language-specific tracking**: Track productivity by programming language.
-- Implemented **granular edit detection**: Distinguish between manual, assisted, and bulk edits.
-- Enhanced **status bar display** with live, real-time metric updates.
-- Added **Git branch awareness** to improve accuracy when switching branches.
-- Improved **window state detection** for better activity tracking.
-- New internal architecture using event-driven patterns and better state management.
-- Better error handling and validation.
-
-### 1.2.1
-
-- Added reconnection logic to handle temporary API outages.
-- Improved status bar user interface.
-
-### 1.1.2
-
-- Introduced email-based authentication for user identification.
-
-### 1.0.0 – Initial Release
-
-- Basic line and character tracking.
-- Total editor usage time monitoring.
-- Automatic data submission to API.
+![Link Account](images/link-account.png)
 
 ---
 
-## 📬 Feedback
+## Dashboard Overview
 
-Have suggestions, questions, or found a bug?  
-Feel free to open an [issue](https://github.com/PedroKleinDavila/statistics-extension/issues) or submit a [pull request](https://github.com/PedroKleinDavila/statistics-extension/pulls)!
+The dashboard aggregates coding metrics, insights and activity heatmaps.
+
+![Dashboard](images/dashboard.png)
+
+---
+
+## Language & Project Statistics
+
+Breakdown of coding activity by language and project.
+
+![Language and Project Stats](images/proj-lang-stats.png)
 
 ---
 
-## ✨ Contributing
+## History Page
 
-We welcome contributions to improve the extension. Please fork the repository, make changes, and submit a pull request. For major changes, please open an issue first to discuss your ideas.-
+View detailed historical activity over a custom date range.
+
+![History](images/history.png)
 
 ---
+
+## Global Rankings
+
+Compare your coding activity with other developers.
+
+![Rankings](images/rankings.png)
+
+---
+
+# What The Extension Tracks
+
+The extension captures, per language and per project:
+
+* Coding time (active editor time only)
+* Manual edits (`manualAdd`, `manualDelete`)
+* Assisted edits (`assistedAdd`, `assistedDelete`)
+* Bulk edits (`bulkAdd`, `bulkDelete`)
+
+Edit classification logic:
+
+* `bulk`: more than 5 lines touched OR more than 200 chars touched
+* `assisted`: more than 1 line touched OR more than 50 chars touched (when not bulk)
+* `manual`: everything else
+
+---
+
+# End-to-End Flow (Extension -> Backend -> Frontend)
+
+1. On startup, extension initializes local state and detects:
+
+   * GitHub primary verified email (VS Code GitHub auth)
+   * `vscode.env.machineId`
+
+2. Extension calls `POST /auth/login-extension`.
+
+3. If backend returns `USER_NOT_FOUND` (404), extension opens:
+
+```
+https://codingstats.me/link-account?githubEmail=...&machineId=...
+```
+
+4. User logs in/registers in frontend and frontend calls `POST /auth/link-machine`.
+
+5. Extension retries login every 60s until authenticated.
+
+6. Extension tracks activity locally in workspace state.
+
+7. Every 10 minutes, extension snapshots local counters and queues them.
+
+8. Queue is sent to backend via `POST /stats` (JWT bearer token).
+
+9. After upload, extension fetches merged daily server state via `GET /stats/{date}`.
+
+10. Status bar shows live totals = local unsynced + latest synced daily totals.
+
+---
+
+# Reliability Model
+
+* Local queue is persisted in `globalState` by day (`pendingStatisticsByDay`)
+* Queue items from same day are merged
+* If auth expires (401), extension invalidates session and restarts login
+* If network/server fails, pending queue is kept and retried
+* On deactivate, extension forces a final sync cycle (`syncNow`)
+
+---
+
+# Status Bar
+
+Main command:
+
+* `Coding Statistics: Open CodingStats Dashboard`
+
+Display modes (`codingstatistics.statusBar.mode`):
+
+* `compact`
+* `balanced`
+* `deep`
+
+Primary metric (`codingstatistics.statusBar.primaryMetric`):
+
+* `time`
+* `manualLines`
+* `netLines`
+* `assistedShare`
+* `productivityScore`
+
+Time format (`codingstatistics.statusBar.timeFormat`):
+
+* `human`
+* `hhmmss`
+* `minutes`
+
+Sync icons are dynamic (`check`, `sync~spin`, `cloud-offline`, `warning`, `pulse`) based on auth and pending queue status.
+
+---
+
+# Extension Settings
+
+* `codingstatistics.apiUrl` (default: `https://api.codingstats.me`)
+* `codingstatistics.statusBar.mode`
+* `codingstatistics.statusBar.primaryMetric`
+* `codingstatistics.statusBar.timeFormat`
+
+---
+
+# Setup
+
+1. Configure Git email (used for extension identity)
+
+```
+git config user.email "your-email@example.com"
+```
+
+2. Install extension.
+
+3. Open VS Code and start coding.
+
+4. Click the extension status bar item to open the dashboard.
+
+---
+
+# Known Limitation
+
+If GitHub email or machine ID is unavailable, data stays local until authentication can be completed.
