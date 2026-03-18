@@ -10,6 +10,8 @@ type LoginNotFound = {
 
 type AuthCallbacks = {
     onAuthenticated: (session: ExtensionLoginSuccess) => void | Promise<void>;
+    onAuthRequired: (reason: string) => void | Promise<void>;
+    onAuthError: (reason: string) => void | Promise<void>;
 };
 
 export class AuthService {
@@ -91,15 +93,21 @@ export class AuthService {
                     const linkUrl = `${FRONTEND_LINK_URL}?githubEmail=${encodeURIComponent(this.identity.githubEmail)}&machineId=${encodeURIComponent(this.identity.machineId)}`;
                     void vscode.env.openExternal(vscode.Uri.parse(linkUrl));
                 }
+                await this.callbacks.onAuthRequired('Account not linked to this GitHub email and machine.');
                 return;
             }
 
+            const body = await response.text();
             if (response.status < 500) {
-                const body = await response.text();
                 console.error(`Extension login failed (${response.status}): ${body}`);
+                await this.callbacks.onAuthRequired(`Extension auth rejected (${response.status}).`);
+                return;
             }
+
+            await this.callbacks.onAuthError(`Auth server error (${response.status}) while logging extension.`);
         } catch (error) {
             console.error('Extension login request failed:', error);
+            await this.callbacks.onAuthError('Network error while authenticating extension.');
         } finally {
             this.loginInFlight = false;
         }

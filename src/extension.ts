@@ -128,11 +128,27 @@ export async function activate(context: vscode.ExtensionContext) {
 			onAuthenticated: async () => {
 				await syncService?.onAuthenticated();
 			},
+			onAuthRequired: async (reason) => {
+				await syncService?.onAuthRequired(reason);
+			},
+			onAuthError: async (reason) => {
+				await syncService?.onAuthError(reason);
+			},
 		});
 	}
 
 	syncService = new SyncService(context, apiBaseUrl, statsQueue, authService);
 	syncService.start();
+
+	if (!email || !machineId) {
+		const reason = !email && !machineId
+			? 'GitHub email and machine ID are missing.'
+			: !email
+				? 'GitHub email is missing.'
+				: 'Machine ID is missing.';
+		await syncService.onAuthRequired(reason);
+	}
+
 	authService?.start();
 }
 

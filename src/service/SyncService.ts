@@ -228,6 +228,20 @@ export class SyncService {
         await this.syncCurrentDayFromBackend(token);
     }
 
+    public async onAuthRequired(reason: string) {
+        await this.updateSyncMeta(
+            { isAuthenticated: false, lastErrorAt: Date.now(), lastErrorMessage: reason },
+            'auth_required'
+        );
+    }
+
+    public async onAuthError(reason: string) {
+        await this.updateSyncMeta(
+            { isAuthenticated: false, lastErrorAt: Date.now(), lastErrorMessage: reason },
+            'error'
+        );
+    }
+
     public async syncNow(): Promise<void> {
         await this.syncCycle();
     }
