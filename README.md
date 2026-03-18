@@ -89,7 +89,7 @@ Edit classification logic:
 3. If backend returns `USER_NOT_FOUND` (404), extension opens:
 
 ```
-https://codingstats.me/link-account?githubEmail=...&machineId=...
+https://codingstats.me/login?githubEmail=...&machineId=...
 ```
 
 4. User logs in/registers in frontend and frontend calls `POST /auth/link-machine`.

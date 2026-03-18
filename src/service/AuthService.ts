@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ExtensionIdentity, ExtensionLoginSuccess } from '../types';
 
 const LOGIN_RETRY_INTERVAL_MS = 60_000;
-const FRONTEND_LINK_URL = 'https://codingstats.me/link-account';
+const FRONTEND_LINK_URL = 'https://codingstats.me/login';
 
 type LoginNotFound = {
     code?: string;
