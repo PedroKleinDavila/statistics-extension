@@ -3,8 +3,13 @@ import { getLanguage } from '../../utils/data/getLanguage';
 import { getProject } from '../../utils/data/getProject';
 import { StatsState } from '../../types';
 import { updateCounters } from '../../utils/updateCounters';
+import { LanguageBlacklistService } from '../../service/LanguageBlacklistService';
 
-export function registerTextChanges(context: vscode.ExtensionContext) {
+export function registerTextChanges(
+    context: vscode.ExtensionContext,
+    getLanguageBlacklistService: () => LanguageBlacklistService | undefined,
+    getAccessToken: () => string | null,
+) {
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(event => {
             if (event.contentChanges.length === 0) return;
@@ -23,9 +28,16 @@ export function registerTextChanges(context: vscode.ExtensionContext) {
             }
 
             const document = event.document;
-            const now = Date.now();
             const language = getLanguage(document);
             const projectId = getProject(document);
+            const languageBlacklistService = getLanguageBlacklistService();
+
+            if (languageBlacklistService) {
+                languageBlacklistService.maybeRefresh(getAccessToken());
+                if (languageBlacklistService.isBlocked(language)) {
+                    return;
+                }
+            }
 
             //console.log('text.change.received', {
             // document: document.uri.toString(),

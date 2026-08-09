@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { handleWindowStateChange } from './events/vscode/handleWindowStateChange';
 import { getUserEmail } from './utils/data/getUserEmail';
 import { registerTextChanges } from './events/vscode/registerTextChanges';
+import { LanguageBlacklistService } from './service/LanguageBlacklistService';
 import { initStatsState } from './events/initStatsState';
 import { updateStatsBar } from './statusBar';
 import { startGitBranchWatcher } from './events/git/startGitBranchWatcher';
@@ -20,6 +21,7 @@ let extensionContext: vscode.ExtensionContext;
 let statsStatusBarItem: vscode.StatusBarItem;
 let authService: AuthService | undefined;
 let syncService: SyncService | undefined;
+let languageBlacklistService: LanguageBlacklistService | undefined;
 
 function hasCounters(counters: StatCounters): boolean {
 	return (
@@ -87,7 +89,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	startGitBranchWatcher(context);
 	registerEditorTracking(context);
-	registerTextChanges(context);
+	registerTextChanges(
+		context,
+		() => languageBlacklistService,
+		() => authService?.getAccessToken() ?? null,
+	);
 	handleWindowStateChange(context);
 
 	statsStatusBarItem = vscode.window.createStatusBarItem(
@@ -120,12 +126,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	languageBlacklistService = new LanguageBlacklistService(context, apiBaseUrl);
+
 	if (email && machineId) {
 		authService = new AuthService(apiBaseUrl, {
 			githubEmail: email,
 			machineId,
 		}, {
-			onAuthenticated: async () => {
+			onAuthenticated: async (session) => {
+				await languageBlacklistService?.refresh(session.accessToken);
 				await syncService?.onAuthenticated();
 			},
 			onAuthRequired: async (reason) => {
